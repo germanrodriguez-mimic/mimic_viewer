@@ -40,7 +40,7 @@ app = FastAPI(lifespan=lifespan)
 
 def log_episode_background_task(episode_url, logger):
     root = zarr.open(episode_url)
-    data_loader = ZarrBatchLoader(root).get_data(50)
+    data_loader = ZarrBatchLoader(root).get_data(1000)
 
     for data in data_loader:
         logger.log_data_batches(data)
