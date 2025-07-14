@@ -52,7 +52,6 @@ app.add_middleware(
 )
 
 def log_episode_background_task(logger, episode_url):
-    logger.log_text(episode_url)
     logger.log_text("Loading zarr data...", level=rr.TextLogLevel.WARN)
     root = zarr.open(episode_url)
     data_loader = ZarrBatchLoader(root).get_data(ZARR_DATA_LOADING_LIMIT)
@@ -95,6 +94,7 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     urdfs_path = f"{pkg_share_path}/urdf"
     logger = Bimanual049Logger(urdfs_path, new_recording) if is_bimanual else SingleHand048Logger(urdfs_path, new_recording)
     logger.reset()
+    logger.log_text(episode_url)
 
     new_episode_recording_data = RecordingData(
         episode_id=episode_id,
