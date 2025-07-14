@@ -8,7 +8,7 @@ import os
 import random
 
 import zarr
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 import rerun as rr
 from ament_index_python.packages import get_package_share_directory
 
@@ -38,8 +38,16 @@ def get_rerun_url(port):
 app = FastAPI(lifespan=lifespan)
     
 
-@app.get("/get_episode_log")
-async def get_episode_log(episode_id: int):
+def log_episode_background_task(episode_url, logger):
+    root = zarr.open(episode_url)
+    data_loader = ZarrBatchLoader(root).get_data(50)
+
+    for data in data_loader:
+        logger.log_data_batches(data)
+    
+
+@app.get("/log_episode")
+async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     global recording_data_manager
     
     episode_recording_data = recording_data_manager.find_by_episode_id(episode_id)
@@ -66,6 +74,11 @@ async def get_episode_log(episode_id: int):
     
     new_recording.serve_grpc(grpc_port=grpc_port, server_memory_limit="90%")
     
+    pkg_share_path = get_package_share_directory("mimic_viz")
+    urdfs_path = f"{pkg_share_path}/urdf"
+    logger = Bimanual049Logger(urdfs_path, new_recording) if is_bimanual else SingleHand048Logger(urdfs_path, new_recording)
+    logger.reset()
+
     new_episode_recording_data = RecordingData(
         episode_id=episode_id,
         recording=new_recording,
@@ -74,21 +87,7 @@ async def get_episode_log(episode_id: int):
 
     recording_data_manager.add(new_episode_recording_data)
 
-    try:
-        pkg_share_path = get_package_share_directory("mimic_viz")
-        urdfs_path = f"{pkg_share_path}/urdf"
-
-        logger = Bimanual049Logger(urdfs_path, new_recording) if is_bimanual else SingleHand048Logger(urdfs_path, new_recording)
-        logger.reset()
-
-        # Open zarr from episode URL
-        root = zarr.open(episode_url)
-        data_loader = ZarrBatchLoader(root).get_data(500)
-
-        for data_batch in data_loader:
-            logger.log_data_batches(data_batch)
-    except Exception:
-        recording_data_manager._cleanup(new_episode_recording_data)
+    background_tasks.add_task(log_episode_background_task, episode_url, logger)
 
     return RedirectResponse(get_rerun_url(grpc_port))
 

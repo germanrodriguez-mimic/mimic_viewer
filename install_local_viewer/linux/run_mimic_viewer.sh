@@ -6,10 +6,14 @@
 VENV_DIR="$HOME/.cache/mimic_viewer_opener_venv"
 source "$VENV_DIR/bin/activate"
 
-if [ -z "$1" ]; then
+# The first argument ($1) is the rerun:// URL passed by the desktop environment.
+DATA_SOURCE=$1
+
+if [ -z "$DATA_SOURCE" ]; then
     echo "Usage: $0 <rerun_url>"
     exit 1
 fi
 
-# The first argument ($1) is the rerun:// URL passed by the desktop environment.
-rerun --memory-limit 90% "$1" &
+# replace rerun:// with rerun+http://
+DATA_SOURCE="${DATA_SOURCE/rerun:\/\//rerun+http:\/\/}"
+rerun --memory-limit 90% DATA_SOURCE &
