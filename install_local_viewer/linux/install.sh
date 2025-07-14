@@ -31,7 +31,7 @@ if [ ! -f "$RUNNER_SCRIPT" ]; then
     echo "Error: The runner script '$RUNNER_SCRIPT' was not found in the current directory."
     exit 1
 fi
-mv "$RUNNER_SCRIPT" "$MIMIC_VIEWER_DIR/"
+cp "$RUNNER_SCRIPT" "$MIMIC_VIEWER_DIR/"
 echo "Runner script moved to '$MIMIC_VIEWER_DIR'."
 
 
