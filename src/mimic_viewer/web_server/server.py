@@ -60,7 +60,9 @@ def log_episode_background_task(logger, episode_url):
         logger.log_text(f"Logged data batch #{index + 1}")
     logger.log_text("All data has been logged!")
 
-
+@app.api_route("/", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def blocked_endpoint():
+    raise HTTPException(status_code=403)
 
 @app.get("/log_episode")
 async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
