@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
 from mimic_viewer.data_sources.zarr_batch_loader import ZarrBatchLoader
 import uvicorn
 import os
@@ -33,8 +33,12 @@ async def lifespan(app: FastAPI):
     # cleanup
     recording_data_manager.cleanup_all()
 
-def get_rerun_url(port):
-    return f"rerun://{SERVER_IP_ADDRESS}:{port}/proxy"
+def get_rerun_json_response(port):
+    return JSONResponse(
+        content={
+            "url": f"rerun://{SERVER_IP_ADDRESS}:{port}/proxy"
+        }
+    )
 
 app = FastAPI(lifespan=lifespan)
 
@@ -49,10 +53,9 @@ app.add_middleware(
 def log_episode_background_task(episode_url, logger):
     root = zarr.open(episode_url)
     data_loader = ZarrBatchLoader(root).get_data(1000)
-
     for data in data_loader:
         logger.log_data_batches(data)
-    
+
 
 @app.get("/log_episode")
 async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
@@ -61,7 +64,7 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     episode_recording_data = recording_data_manager.find_by_episode_id(episode_id)
 
     if episode_recording_data is not None:
-        return RedirectResponse(get_rerun_url(episode_recording_data.grpc_port))
+        return get_rerun_json_response(episode_recording_data.grpc_port)
  
     episode_info = await db_manager.get_episode_info(episode_id)
     if not episode_info:
@@ -97,7 +100,7 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
 
     background_tasks.add_task(log_episode_background_task, episode_url, logger)
 
-    return RedirectResponse(get_rerun_url(grpc_port))
+    return get_rerun_json_response(grpc_port)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
