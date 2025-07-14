@@ -15,5 +15,4 @@ services:
     privileged: true
     stdin_open: true
     tty: true
-    # command: python3  src/mimic_viewer/web_server/server.py
-    command: bash
+    command: python3  src/mimic_viewer/web_server/server.py
