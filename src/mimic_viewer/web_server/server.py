@@ -9,6 +9,7 @@ import random
 
 import zarr
 from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
 import rerun as rr
 from ament_index_python.packages import get_package_share_directory
 
@@ -36,7 +37,14 @@ def get_rerun_url(port):
     return f"rerun://{SERVER_IP_ADDRESS}:{port}/proxy"
 
 app = FastAPI(lifespan=lifespan)
-    
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],       # Specifies the allowed origins
+    allow_credentials=True,      # Allows cookies to be included in requests
+    allow_methods=["*"],         # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],         # Allows all request headers
+)
 
 def log_episode_background_task(episode_url, logger):
     root = zarr.open(episode_url)
