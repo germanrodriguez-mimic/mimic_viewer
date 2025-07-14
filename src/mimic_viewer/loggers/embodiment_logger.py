@@ -26,7 +26,7 @@ class EmbodimentLogger:
             hand_joint_logging_info.logger.log(self.recording)
 
     def log_text(self, text, level=rr.TextLogLevel.INFO):
-        print(f"[{level.name}]: {text}")
+        print(f"[{level}]: {text}")
         self.recording.log("logs", rr.TextLog(text, level=level))
 
     def log_data_point(self, data_point):
