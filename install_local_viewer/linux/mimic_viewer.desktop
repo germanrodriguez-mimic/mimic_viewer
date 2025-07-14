@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=mimic viewer
+Comment=Handles rerun:// URLs to launch the mimic rerun viewer
+Exec=bash %h/.mimic_viewer/run_mimic_viewer.sh %u
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/rerun;
+Categories=Utility;
