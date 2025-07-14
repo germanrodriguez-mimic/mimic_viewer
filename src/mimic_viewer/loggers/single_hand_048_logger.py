@@ -112,18 +112,22 @@ class SingleHand048Logger(EmbodimentLogger):
         return joint_to_follower_joint_map
 
     def set_blueprint(self):
-        blueprint = rr.blueprint.Horizontal(
-            rr.blueprint.Spatial3DView(name="robot view", origin="/", contents=["/**"]),
-            rr.blueprint.Vertical(
-                rr.blueprint.Spatial2DView(name="Fixed", origin="cameras/fixed_0"),
-                rr.blueprint.Horizontal(
-                    rr.blueprint.Spatial2DView(name="Wrist top", origin="cameras/wrist_top"),
-                    rr.blueprint.Spatial2DView(name="Wrist bottom", origin="cameras/wrist_bottom"),
+        blueprint = rr.blueprint.Vertical(
+            rr.blueprint.Horizontal(
+                rr.blueprint.Spatial3DView(name="robot view", origin="/", contents=["/**"]),
+                rr.blueprint.Vertical(
+                    rr.blueprint.Spatial2DView(name="Fixed", origin="cameras/fixed_0"),
+                    rr.blueprint.Horizontal(
+                        rr.blueprint.Spatial2DView(name="Wrist top", origin="cameras/wrist_top"),
+                        rr.blueprint.Spatial2DView(name="Wrist bottom", origin="cameras/wrist_bottom"),
+                    ),
                 ),
+                rr.blueprint.SelectionPanel(state="collapsed"),
+                rr.blueprint.BlueprintPanel(state="collapsed"),
+                rr.blueprint.TimePanel(state="collapsed"),
+                column_shares=[0.5,0.5],
             ),
-            rr.blueprint.SelectionPanel(state="collapsed"),
-            rr.blueprint.BlueprintPanel(state="collapsed"),
-            rr.blueprint.TimePanel(state="collapsed"),
-            column_shares=[0.5,0.5],
+            rr.blueprint.TextLogView(origin="logs", name="logs"),
+            row_shares=[0.9,0.1]
         )
         self.recording.send_blueprint(blueprint)

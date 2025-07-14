@@ -21,6 +21,7 @@ from mimic_viewer.web_server.recordings.recording_manager import RecordingData, 
 load_dotenv()
 
 MAX_RECORDINGS = int(os.environ["MAX_RECORDINGS"])
+ZARR_DATA_LOADING_LIMIT = int(os.environ["ZARR_DATA_LOADING_LIMIT"])
 SERVER_IP_ADDRESS = os.environ["SERVER_IP_ADDRESS"]
 recording_data_manager = RecordingDataManager(max_size=MAX_RECORDINGS)
 
@@ -50,11 +51,16 @@ app.add_middleware(
     allow_headers=["*"],         # Allows all request headers
 )
 
-def log_episode_background_task(episode_url, logger):
+def log_episode_background_task(logger, episode_url):
+    logger.log_text(episode_url)
+    logger.log_text("Loading zarr data...", level=rr.TextLogLevel.WARN)
     root = zarr.open(episode_url)
-    data_loader = ZarrBatchLoader(root).get_data(1000)
-    for data in data_loader:
+    data_loader = ZarrBatchLoader(root).get_data(ZARR_DATA_LOADING_LIMIT)
+    for index, data in enumerate(data_loader):
         logger.log_data_batches(data)
+        logger.log_text(f"Logged data batch #{index + 1}")
+    logger.log_text("All data has been logged!")
+
 
 
 @app.get("/log_episode")
@@ -98,7 +104,7 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
 
     recording_data_manager.add(new_episode_recording_data)
 
-    background_tasks.add_task(log_episode_background_task, episode_url, logger)
+    background_tasks.add_task(log_episode_background_task, logger, episode_url)
 
     return get_rerun_json_response(grpc_port)
 

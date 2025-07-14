@@ -25,6 +25,9 @@ class EmbodimentLogger:
         for hand_joint_logging_info in self.hand_joint_logging_infos:
             hand_joint_logging_info.logger.log(self.recording)
 
+    def log_text(self, text, level=rr.TextLogLevel.INFO):
+        self.recording.log("logs", rr.TextLog(text, level=level))
+
     def log_data_point(self, data_point):
         """
         data_point is a tuple of (topic_name, timestamp_ns, value)
