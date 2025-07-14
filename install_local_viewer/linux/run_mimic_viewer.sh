@@ -16,4 +16,4 @@ fi
 
 # replace rerun:// with rerun+http://
 DATA_SOURCE="${DATA_SOURCE/rerun:\/\//rerun+http:\/\/}"
-rerun --memory-limit 90% DATA_SOURCE &
+rerun --memory-limit 90% $DATA_SOURCE &
