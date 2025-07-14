@@ -225,7 +225,7 @@ class Bimanual049Logger(EmbodimentLogger):
         log_base_transform("/world/left/base", [0,0.29,0],identity_rotation, recording=self.recording)
 
     def set_blueprint(self):
-        blueprint=rr.blueprint.Horizontal(
+        blueprint=rr.blueprint.Vertical(
             rr.blueprint.Tabs(
                 rr.blueprint.Horizontal(
                     rr.blueprint.Spatial3DView(name="robot view", origin="/", contents=["/**"]),
