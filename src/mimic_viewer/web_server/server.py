@@ -93,5 +93,5 @@ async def get_episode_log(episode_id: int):
     return RedirectResponse(get_rerun_url(grpc_port))
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=SERVER_IP_ADDRESS, port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
     
