@@ -1,0 +1,97 @@
+from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+from fastapi.responses import RedirectResponse
+from mimic_viewer.data_sources.zarr_batch_loader import ZarrBatchLoader
+import uvicorn
+import os
+import random
+
+import zarr
+from fastapi import FastAPI, HTTPException
+import rerun as rr
+from ament_index_python.packages import get_package_share_directory
+
+from mimic_viewer.loggers.bimanual_049_logger import Bimanual049Logger
+from mimic_viewer.loggers.single_hand_048_logger import SingleHand048Logger
+from mimic_viewer.web_server.database.database import db_manager
+from mimic_viewer.web_server.recordings.recording_manager import RecordingData, RecordingDataManager
+
+load_dotenv()
+
+MAX_RECORDINGS = int(os.environ["MAX_RECORDINGS"])
+SERVER_IP_ADDRESS = os.environ["SERVER_IP_ADDRESS"]
+recording_data_manager = RecordingDataManager(max_size=MAX_RECORDINGS)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global recording_data_manager
+    # startup
+    rr.serve_web_viewer(web_port=9000, open_browser=False)
+    yield
+    # cleanup
+    recording_data_manager.cleanup_all()
+
+def get_rerun_url(port):
+    return f"rerun://{SERVER_IP_ADDRESS}:{port}/proxy"
+
+app = FastAPI(lifespan=lifespan)
+    
+
+@app.get("/get_episode_log")
+async def get_episode_log(episode_id: int):
+    global recording_data_manager
+    
+    episode_recording_data = recording_data_manager.find_by_episode_id(episode_id)
+
+    if episode_recording_data is not None:
+        return RedirectResponse(get_rerun_url(episode_recording_data.grpc_port))
+ 
+    episode_info = await db_manager.get_episode_info(episode_id)
+    if not episode_info:
+        raise HTTPException(status_code=404, detail="Episode not found")
+    
+    episode_url = episode_info["url"]
+    if not episode_url:
+        raise HTTPException(status_code=404, detail="Episode URL not found")
+    
+    # Determine if it's bimanual based on embodiment name
+    is_bimanual = "bimanual" in episode_info.get("embodiment_name", "").lower()
+
+    new_recording = rr.RecordingStream(f"viewing_{episode_id}")
+    
+    grpc_port = 0
+    while grpc_port < 9000 or recording_data_manager.is_port_used(grpc_port):
+        grpc_port = random.randint(9001, 65535)
+    
+    new_recording.serve_grpc(grpc_port=grpc_port, server_memory_limit="90%")
+    
+    new_episode_recording_data = RecordingData(
+        episode_id=episode_id,
+        recording=new_recording,
+        grpc_port=grpc_port
+    )
+
+    recording_data_manager.add(new_episode_recording_data)
+
+    try:
+        pkg_share_path = get_package_share_directory("mimic_viz")
+        urdfs_path = f"{pkg_share_path}/urdf"
+
+        logger = Bimanual049Logger(urdfs_path, new_recording) if is_bimanual else SingleHand048Logger(urdfs_path, new_recording)
+        logger.reset()
+
+        # Open zarr from episode URL
+        root = zarr.open(episode_url)
+        data_loader = ZarrBatchLoader(root).get_data(500)
+
+        for data_batch in data_loader:
+            logger.log_data_batches(data_batch)
+    except Exception:
+        recording_data_manager._cleanup(new_episode_recording_data)
+
+    return RedirectResponse(get_rerun_url(grpc_port))
+
+if __name__ == "__main__":
+    uvicorn.run(app, host=SERVER_IP_ADDRESS, port=8000)
+    

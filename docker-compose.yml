@@ -1,0 +1,19 @@
+services:
+  mimic_viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mimic_viewer
+    image: mimic_viewer:latest
+    environment:
+      - ROS_DISTRO=humble
+      - AMENT_PREFIX_PATH=/robotics
+    volumes:
+      - .:/workspace/mimic_viewer:rw
+      - ~/.auth:/.auth:ro
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    # command: python3  src/mimic_viewer/web_server/server.py
+    command: bash

@@ -1,0 +1,1 @@
+DOCKER_BUILDKIT=1 docker build --secret id=netrc-secret,src=${HOME}/.netrc -t mimic_viewer:latest .
