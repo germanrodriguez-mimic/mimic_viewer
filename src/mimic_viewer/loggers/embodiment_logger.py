@@ -1,6 +1,6 @@
 import rerun as rr
 
-from mimic_viewer.loggers.utils import EffortsLoggingInfo, HandJointsLoggingInfo, ImageLoggingInfo, WristPoseLoggingInfo, log_efforts_batch, log_hand_joints, log_hand_joints_batch, log_image, log_image_batch, log_wrist_pose, log_wrist_pose_batch
+from mimic_viewer.loggers.utils import EffortsLoggingInfo, HandJointsLoggingInfo, ImageLoggingInfo, WristPoseLoggingInfo, log_efforts, log_efforts_batch, log_hand_joints, log_hand_joints_batch, log_image, log_image_batch, log_wrist_pose, log_wrist_pose_batch
 
 class EmbodimentLogger:
     def __init__(self, urdf_path, recording):
@@ -50,6 +50,10 @@ class EmbodimentLogger:
             if wrist_pose_logging_info.topic_name == key:
                 log_wrist_pose(wrist_pose_logging_info, value, self.recording)
                 return
+
+        for efforts_logging_info in self.efforts_logging_infos:
+                if efforts_logging_info.topic_name == key:
+                    log_efforts(efforts_logging_info, value, self.recording)
     
     def log_data_batches(self, data_batches):
         """

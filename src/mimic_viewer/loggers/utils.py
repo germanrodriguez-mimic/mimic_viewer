@@ -76,6 +76,11 @@ def log_wrist_pose(wrist_pose_logging_info, value, recording):
 def log_scalar(entity, value, recording):
     recording.log(entity, rr.Scalars(scalars=value))
 
+def log_efforts(efforts_logging_info, value, recording):
+    for joint_index in range(value.shape[0]):
+        effort = value[joint_index]
+        log_scalar(f"{efforts_logging_info.entity_name}{efforts_logging_info.suffix_generator(joint_index)}", effort, recording)
+
 def log_transform_batch(entity, translation_vectors, rotation_objects, timestamps, axis_length, recording):
     recording.send_columns(
         entity,

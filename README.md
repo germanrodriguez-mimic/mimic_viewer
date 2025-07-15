@@ -114,7 +114,7 @@ for data_batch in loader.get_data(indices_per_log_call):
 ```bash
 SERVER_IP_ADDRESS="0.0.0.0"
 MAX_RECORDINGS="3"
-ZARR_DATA_LOADING_LIMIT="500"
+DEBUG="False"
 # these two should always have these values since they are mounted in the container
 GOOGLE_APPLICATION_CREDENTIALS="/.auth/cloud/gcp/service-account-key.json"
 DB_CONFIG_PATH="/.auth/db_config.ini"

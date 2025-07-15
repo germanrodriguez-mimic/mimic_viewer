@@ -23,7 +23,7 @@ load_dotenv()
 MAX_RECORDINGS = int(os.environ["MAX_RECORDINGS"])
 ZARR_DATA_LOADING_LIMIT = int(os.environ["ZARR_DATA_LOADING_LIMIT"])
 SERVER_IP_ADDRESS = os.environ["SERVER_IP_ADDRESS"]
-DEBUG=True
+DEBUG=bool(os.environ["DEBUG"])
 recording_data_manager = RecordingDataManager(max_size=MAX_RECORDINGS)
 
 @asynccontextmanager
