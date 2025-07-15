@@ -95,7 +95,7 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     
     grpc_port = 0
     while grpc_port < 9000 or recording_data_manager.is_port_used(grpc_port):
-        grpc_port = random.randint(9001, 65535)
+        grpc_port = random.randint(9001, 10000)
     
     new_recording.serve_grpc(grpc_port=grpc_port, server_memory_limit="90%")
     
