@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi.responses import JSONResponse
-from mimic_viewer.data_sources.zarr_batch_loader import ZarrBatchLoader
+from mimic_viewer.data_sources.zarr_point_loader import ZarrPointLoader
 import uvicorn
 import os
 import random
@@ -55,10 +55,9 @@ app.add_middleware(
 def log_episode_background_task(logger, episode_url):
     logger.log_text("Loading zarr data...", level=rr.TextLogLevel.WARN)
     root = zarr.open(episode_url)
-    data_loader = ZarrBatchLoader(root).get_data(ZARR_DATA_LOADING_LIMIT)
+    data_loader = ZarrPointLoader(root).get_data()
     for index, data in enumerate(data_loader):
-        logger.log_data_batches(data)
-        logger.log_text(f"Logged data batch #{index + 1}")
+        logger.log_data_point(data)
     logger.log_text("All data has been logged!")
 
 @app.api_route("/", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
