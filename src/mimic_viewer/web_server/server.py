@@ -21,7 +21,6 @@ from mimic_viewer.web_server.recordings.recording_manager import RecordingData, 
 load_dotenv()
 
 MAX_RECORDINGS = int(os.environ["MAX_RECORDINGS"])
-ZARR_DATA_LOADING_LIMIT = int(os.environ["ZARR_DATA_LOADING_LIMIT"])
 SERVER_IP_ADDRESS = os.environ["SERVER_IP_ADDRESS"]
 DEBUG=bool(os.environ["DEBUG"])
 recording_data_manager = RecordingDataManager(max_size=MAX_RECORDINGS)
@@ -87,7 +86,9 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=404, detail="Episode URL not found")
     
     # Determine if it's bimanual based on embodiment name
-    is_bimanual = "bimanual" in episode_info.get("embodiment_name", "").lower()
+    embodiment = episode_info.get("embodiment_name", "")
+    embodiment = embodiment or "bimanual" # handle embodiment being none
+    is_bimanual = "bimanual" in embodiment.lower()
 
     if DEBUG:
         print("starting a new recording")
