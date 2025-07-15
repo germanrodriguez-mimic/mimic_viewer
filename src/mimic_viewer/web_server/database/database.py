@@ -33,7 +33,8 @@ class DatabaseManager:
         try:
             yield conn
         finally:
-            self.connector.close()
+            if conn:
+                conn.close()
 
     async def get_episode_url(self, episode_id: int):
         async with self.get_connection() as conn:

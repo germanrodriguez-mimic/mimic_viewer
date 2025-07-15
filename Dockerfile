@@ -14,7 +14,7 @@ RUN --mount=type=secret,id=netrc-secret,target=/root/.netrc \
 RUN rsync -av --progress /robotics/mimic_robotics/ros_packages/utils/mimic_viz/ /mimic_viz --exclude urdf --exclude meshes \
     && rsync -av --progress /robotics/mimic_robotics/utils/mimic_hand_middleware/mimic_hand_middleware/hand_definitions/urdf /mimic_viz/
 
-RUN find /mimic_viz -type f -exec sed -i 's#mimic_viz/meshes/p49#mimic_viz/urdf/p49#g' {} +
+RUN find /mimic_viz -type f -exec sed -i 's#mimic_viz/meshes/p4#mimic_viz/urdf/p4#g' {} +
 
 FROM ros:humble
 

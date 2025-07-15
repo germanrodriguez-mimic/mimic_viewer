@@ -23,6 +23,7 @@ load_dotenv()
 MAX_RECORDINGS = int(os.environ["MAX_RECORDINGS"])
 ZARR_DATA_LOADING_LIMIT = int(os.environ["ZARR_DATA_LOADING_LIMIT"])
 SERVER_IP_ADDRESS = os.environ["SERVER_IP_ADDRESS"]
+DEBUG=True
 recording_data_manager = RecordingDataManager(max_size=MAX_RECORDINGS)
 
 @asynccontextmanager
@@ -67,12 +68,17 @@ async def blocked_endpoint():
 @app.get("/log_episode")
 async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     global recording_data_manager
-    
+    if DEBUG:
+        print("trying to find episode data")
     episode_recording_data = recording_data_manager.find_by_episode_id(episode_id)
 
     if episode_recording_data is not None:
+        if DEBUG:
+            print("episode is currently logged")
         return get_rerun_json_response(episode_recording_data.grpc_port)
  
+    if DEBUG:
+        print("getting information about the episode from the db")
     episode_info = await db_manager.get_episode_info(episode_id)
     if not episode_info:
         raise HTTPException(status_code=404, detail="Episode not found")
@@ -84,6 +90,8 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     # Determine if it's bimanual based on embodiment name
     is_bimanual = "bimanual" in episode_info.get("embodiment_name", "").lower()
 
+    if DEBUG:
+        print("starting a new recording")
     new_recording = rr.RecordingStream(f"viewing_{episode_id}")
     
     grpc_port = 0
@@ -92,6 +100,8 @@ async def log_episode(episode_id: int, background_tasks: BackgroundTasks):
     
     new_recording.serve_grpc(grpc_port=grpc_port, server_memory_limit="90%")
     
+    if DEBUG:
+        print("creating a new logger")
     pkg_share_path = get_package_share_directory("mimic_viz")
     urdfs_path = f"{pkg_share_path}/urdf"
     logger = Bimanual049Logger(urdfs_path, new_recording) if is_bimanual else SingleHand048Logger(urdfs_path, new_recording)
