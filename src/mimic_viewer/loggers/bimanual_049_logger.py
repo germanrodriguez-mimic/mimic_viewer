@@ -277,7 +277,20 @@ class Bimanual049Logger(EmbodimentLogger):
                     rr.blueprint.TimePanel(state="collapsed"),
                     column_shares=[0.6,0.4],
                     name="detailed view"
-                )
+                ),
+                rr.blueprint.Vertical(
+                    rr.blueprint.Spatial2DView(name="fixed", origin="cameras/fixed_0"),
+                    rr.blueprint.Horizontal(
+                        rr.blueprint.Spatial2DView(name="left top", origin="cameras/left/wrist_top"),
+                        rr.blueprint.Spatial2DView(name="left bottom", origin="cameras/left/wrist_bottom"),
+                    ),
+                    rr.blueprint.Horizontal(
+                        rr.blueprint.Spatial2DView(name="right top", origin="cameras/right/wrist_top"),
+                        rr.blueprint.Spatial2DView(name="right bottom", origin="cameras/right/wrist_bottom"),
+                    ),
+                    name="cameras view",
+                    row_shares=[0.5,0.25,0.25],
+                ),
             ),
             rr.blueprint.TextLogView(origin="logs", name="logs"),
             row_shares=[0.9,0.1]
